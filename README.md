@@ -1,36 +1,34 @@
-# Aircraft Predictive Maintenance Self project 
+# Aircraft Predictive Maintenance
 
-A machine learning pipeline that predicts equipment failure from sensor telemetry before the failure happens and explains which sensors actually drove each prediction, not just the prediction itself.
+A machine learning project that predicts when equipment is likely to fail based on sensor data. The main goal is not just to predict a failure, but also to understand which sensors had the biggest influence on that prediction.
 
-## Why explainability matters here
+## Why I built this
 
-Most failure-prediction demos stop at a yes/no output. For anything safety-critical — aircraft systems included — a prediction on its own isn't enough; you need to know *why* a model is raising a flag before acting on it. This project treats that as the actual point, not an afterthought: alongside the prediction, it extracts and ranks which sensor readings the model relied on most.
+A lot of machine learning projects stop once the model gives you a prediction. For something like aircraft maintenance, that is not really enough.
+If a model says that a piece of equipment might fail, you would also want to know why it thinks that. This project looks at the sensor readings behind each prediction and uses feature importance to show which ones the model relied on most.
 
 ## How it works
 
-1. **`generate_data.py`** — simulates 1,000 machines' sensor readings (air/process temperature, rotational speed, torque, tool wear). Failure isn't a fixed rule — it's drawn from a genuine risk-based probability, so outcomes carry real uncertainty rather than being trivially reconstructable from the inputs.
-2. **`main.py`** — trains a Random Forest classifier on 80% of the data, evaluates it on the unseen 20%, and reports accuracy, precision, and recall rather than accuracy alone. It then extracts and plots feature importances.
+### 1. `generate_data.py`
+
+This script creates simulated sensor data for 1,000 machines.
+
+The data includes air temperature, process temperature, rotational speed, torque and tool wear.
+
+Instead of making failure happen whenever a sensor reaches a specific value, the probability of failure is calculated using the sensor readings. This adds some uncertainty to the data and makes the problem more realistic.
+
+### 2. `main.py`
+
+The model uses a Random Forest classifier from scikit learn.
+
+The data is split into training and test sets, with 80 percent used for training and the remaining 20 percent used to test the model on data it has not seen before.
+
+The model is evaluated using accuracy, precision and recall. Looking at these separately is important because failures are less common than normal operation, so accuracy on its own can be misleading.
+
+The script also looks at feature importance and creates a chart showing which sensors had the biggest influence on the model.
 
 ## Results
 
-- **78% accuracy** on held-out data, against a ~75% baseline for always predicting "no failure" — a real, if modest, lift.
-- **Precision and recall reported separately** for the failure class, since accuracy alone is misleading when failures are the minority outcome.
-- **Feature importance** confirms the model leans most on Torque and Tool Wear — the two sensors that actually drive risk in the underlying simulation.
+The model achieved around 78 percent accuracy on the test data.
 
-## Built with
-
-Python · pandas · scikit-learn (`RandomForestClassifier`) · matplotlib · NumPy
-
-## Running it
-
-```bash
-pip install pandas scikit-learn matplotlib numpy
-python generate_data.py
-python main.py
-```
-
-This produces `telemetry_data.csv` (the simulated sensor data) and `feature_importance.png` (the explainability chart).
-
-## Limitations
-
-The sensor data is simulated, not real aircraft telemetry — a real-world version would need actual operational data. Recall on the failure class is currently modest (~30%), reflecting a deliberately cautious model rather than a trigger-happy one; a production system would tune the classification threshold explicitly based on the real cost of a missed failure versus a false alarm.
+For comparison, always predicting that no failure will happen gives a baseline of around 75 percent. This means the model provides a modest improvement over t
